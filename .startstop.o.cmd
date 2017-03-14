@@ -1,0 +1,1 @@
+cmd_/home/jsattler/Documents/COP-4600---PA2/startstop.o := ld -m elf_i386   -r -o /home/jsattler/Documents/COP-4600---PA2/startstop.o /home/jsattler/Documents/COP-4600---PA2/start.o /home/jsattler/Documents/COP-4600---PA2/stop.o 

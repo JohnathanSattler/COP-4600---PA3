@@ -1,0 +1,1 @@
+cmd_/home/jsattler/Documents/COP-4600---PA2/startstop.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds --build-id  -o /home/jsattler/Documents/COP-4600---PA2/startstop.ko /home/jsattler/Documents/COP-4600---PA2/startstop.o /home/jsattler/Documents/COP-4600---PA2/startstop.mod.o

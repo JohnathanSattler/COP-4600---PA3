@@ -1,0 +1,30 @@
+/*
+ * COP 4600
+ * Group 1
+ * Johnathan Sattler
+ * Michael Slater
+ * Christian Theriot
+ */
+
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+
+#define DRIVER_AUTHOR "Johnathan Sattler, Michael Slater, Christian Theriot"
+#define DRIVER_DESC "COP 4600 - Programming Assignment 2"
+
+MODULE_LICENSE("GPL");
+
+MODULE_AUTHOR(DRIVER_AUTHOR);
+MODULE_DESCRIPTION(DRIVER_DESC);
+
+MODULE_SUPPORTED_DEVICE("testdevice");
+
+static int __init pa2_init(void) {
+	printk(KERN_INFO "Module initialized.\n");
+
+	return 0;
+}
+
+module_init(pa2_init);
+
