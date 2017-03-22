@@ -103,16 +103,22 @@ static int device_release(struct inode *inode, struct file *file)
 
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t * offset) {
 
-	int error_count = 0;
-   	error_count = copy_to_user(buffer, message, size_of_message);
- 
-   	if (error_count==0) {
-      		printk(KERN_INFO "EBBChar: Sent %d characters to the user\n", size_of_message);
-      		return (size_of_message=0);
-   	} else {
-      		printk(KERN_INFO "EBBChar: Failed to send %d characters to the user\n", error_count);
-      		return -EFAULT;
-   	}
+	int bytes_read = 0;
+
+	if (*msg_Ptr == 0) {
+		return 0;
+	}
+
+	while (length && *msg_Ptr) {
+		put_user(*(msg_Ptr++), buffer++);
+
+		length--;
+		bytes_read++;
+	}
+
+	printk(KERN_INFO "PA2 Module character device read.\n");
+
+	return bytes_read;
 }
 
 static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t * off) {
@@ -126,6 +132,7 @@ static ssize_t device_write(struct file *filp, const char *buff, size_t len, lof
 
 	printk(KERN_INFO "PA2 Module character device written.\n");
 
+	//return -EINVAL;
 	return i;
 }
 
