@@ -26,18 +26,17 @@ static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 
-#define BUF_LEN 1024
-
 static struct file_operations fops = {
-	.read = device_read,
-	.write = device_write,
-	.open = device_open,
+	.read    = device_read,
+	.write   = device_write,
+	.open    = device_open,
 	.release = device_release
 };
 
 static int Major;
 static int numberOpens = 0;
 
+#define BUF_LEN 1024
 static char msg[BUF_LEN];
 static short msgSize;
 
@@ -48,29 +47,29 @@ static int __init pa2_init(void) {
 
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
 	if (Major < 0) {
-		printk(KERN_ALERT "Registering char device failed with %d\n", Major);
+		printk(KERN_ALERT "PA2 Module: Registering char device failed with %d\n", Major);
 		return Major;
 	}
-	printk(KERN_INFO "PA2 Module assigned major number: %d\n", Major);
+	printk(KERN_INFO "PA2 Module: Assigned major number - %d\n", Major);
 
 	pa2charClass = class_create(THIS_MODULE, CLASS_NAME);
    	if (IS_ERR(pa2charClass)){
       		unregister_chrdev(Major, DEVICE_NAME);
-      		printk(KERN_ALERT "Failed to register device class\n");
+      		printk(KERN_ALERT "PA2 Module: Failed to register device class\n");
       		return PTR_ERR(pa2charClass);
    	}
-   	printk(KERN_INFO "PA2 Module device class registered correctly\n");
+   	printk(KERN_INFO "PA2 Module: Device class registered correctly\n");
 
 	pa2charDevice = device_create(pa2charClass, NULL, MKDEV(Major, 0), NULL, DEVICE_NAME);
    	if (IS_ERR(pa2charDevice)){
       		class_destroy(pa2charClass);
       		unregister_chrdev(Major, DEVICE_NAME);
-      		printk(KERN_ALERT "Failed to create the device\n");
+      		printk(KERN_ALERT "PA2 Module: Failed to create the device\n");
       		return PTR_ERR(pa2charDevice);
    	}
-   	printk(KERN_INFO "PA2 Module class created correctly\n");
+   	printk(KERN_INFO "PA2 Module: Class created correctly\n");
 
-	printk(KERN_INFO "PA2 Module initialized.\n");
+	printk(KERN_INFO "PA2 Module: Initialized.\n");
 
 	return 0;
 }
@@ -82,40 +81,40 @@ static void __exit pa2_exit(void) {
    	class_destroy(pa2charClass);
    	unregister_chrdev(Major, DEVICE_NAME);
 
-	printk(KERN_INFO "PA2 Module de-initialized.\n");
+	printk(KERN_INFO "PA2 Module: De-initialized.\n");
 }
 
 static int device_open(struct inode *inode, struct file *file) {
 
-	printk(KERN_INFO "PA2 Module character device opened %d times.\n", ++numberOpens);
+	printk(KERN_INFO "PA2 Module: Character device opened %d times.\n", ++numberOpens);
 
 	return 0;
 }
 
 static int device_release(struct inode *inode, struct file *file) {
 
-	printk(KERN_INFO "PA2 Module character device closed.\n");
+	printk(KERN_INFO "PA2 Module: Character device closed.\n");
 
 	return 0;
 }
 
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t * offset) {
 
-	int error_count = 0;
-   	error_count = copy_to_user(buffer, msg, msgSize);
+	int errorCount = 0;
+   	errorCount = copy_to_user(buffer, msg, msgSize);
  
-   	if (error_count==0) {
+   	if (errorCount == 0) {
       		printk(KERN_INFO "PA2 Module: Sent %d characters to the user\n", msgSize);
-      		return (msgSize=0);
+      		return (msgSize = 0);
    	}
       	
-	printk(KERN_INFO "PA2 Module: Failed to send %d characters to the user\n", error_count);
+	printk(KERN_INFO "PA2 Module: Failed to send %d characters to the user\n", errorCount);
       	return -EFAULT;
 }
 
 static ssize_t device_write(struct file *filp, const char *buffer, size_t len, loff_t * off) {
 
-	sprintf(msg, "%s(%zu letters)", buffer, len);
+	sprintf(msg, "%s", buffer);
    	msgSize = strlen(msg);
 
    	printk(KERN_INFO "PA2 Module: Received %zu characters from the user\n", len);
