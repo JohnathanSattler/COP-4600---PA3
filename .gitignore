@@ -1,5 +1,8 @@
 *~
 test
+Module.symvers
+modules.order
+*.mod.c
 
 # Object files
 *.o
