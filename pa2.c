@@ -36,11 +36,10 @@ static struct file_operations fops = {
 };
 
 static int Major;
-static int Device_Open = 0;
 static int numberOpens = 0;
 
 static char msg[BUF_LEN];
-static char *msg_Ptr;
+static short msgSize;
 
 static struct class*  pa2charClass  = NULL;
 static struct device* pa2charDevice = NULL;
@@ -78,23 +77,22 @@ static int __init pa2_init(void) {
 
 static void __exit pa2_exit(void) {
 
-	unregister_chrdev(Major, DEVICE_NAME);
+	device_destroy(pa2charClass, MKDEV(Major, 0));
+   	class_unregister(pa2charClass);
+   	class_destroy(pa2charClass);
+   	unregister_chrdev(Major, DEVICE_NAME);
 
 	printk(KERN_INFO "PA2 Module de-initialized.\n");
 }
 
-static int device_open(struct inode *inode, struct file *file)
-{
+static int device_open(struct inode *inode, struct file *file) {
+
 	printk(KERN_INFO "PA2 Module character device opened %d times.\n", ++numberOpens);
 
 	return 0;
 }
 
-static int device_release(struct inode *inode, struct file *file)
-{
-	Device_Open--;
-
-	module_put(THIS_MODULE);
+static int device_release(struct inode *inode, struct file *file) {
 
 	printk(KERN_INFO "PA2 Module character device closed.\n");
 
@@ -104,29 +102,25 @@ static int device_release(struct inode *inode, struct file *file)
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t * offset) {
 
 	int error_count = 0;
-   	error_count = copy_to_user(buffer, message, size_of_message);
+   	error_count = copy_to_user(buffer, msg, msgSize);
  
    	if (error_count==0) {
-      		printk(KERN_INFO "EBBChar: Sent %d characters to the user\n", size_of_message);
-      		return (size_of_message=0);
-   	} else {
-      		printk(KERN_INFO "EBBChar: Failed to send %d characters to the user\n", error_count);
-      		return -EFAULT;
+      		printk(KERN_INFO "PA2 Module: Sent %d characters to the user\n", msgSize);
+      		return (msgSize=0);
    	}
+      	
+	printk(KERN_INFO "PA2 Module: Failed to send %d characters to the user\n", error_count);
+      	return -EFAULT;
 }
 
-static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t * off) {
+static ssize_t device_write(struct file *filp, const char *buffer, size_t len, loff_t * off) {
 
-	int i;
+	sprintf(msg, "%s(%zu letters)", buffer, len);
+   	msgSize = strlen(msg);
 
-	for (i = 0; i < len && i < BUF_LEN; i++)
-		get_user(msg[i], buff + 1);
+   	printk(KERN_INFO "PA2 Module: Received %zu characters from the user\n", len);
 
-	msg_Ptr = msg;
-
-	printk(KERN_INFO "PA2 Module character device written.\n");
-
-	return i;
+   	return len;
 }
 
 module_init(pa2_init);
