@@ -10,42 +10,53 @@ static char receive[BUFFER_LENGTH];
  
 int main() {
 
-   int ret, fd;
-   char stringToSend[BUFFER_LENGTH];
+	int ret, fd, exit;
+	char stringToSend[BUFFER_LENGTH];
 
-   printf("Starting device test code example...\n");
+	printf("Starting device test code example...\n");
 
-   fd = open("/dev/pa2char", O_RDWR);
+	fd = open("/dev/pa2char", O_RDWR);
 
-   if (fd < 0) {
-      perror("Failed to open the device...");
-      return errno;
-   }
+	if (fd < 0) {
+		perror("Failed to open the device...");
+		return errno;
+	}
 
-   printf("Type in a string to send to the kernel module:\n");
-   scanf("%[^\n]%*c", stringToSend);
+	printf("Type in a string to send to the kernel module (press ENTER to skip):\n");
+	fgets(stringToSend, BUFFER_LENGTH, stdin);
+	
+	if (stringToSend[strlen(stringToSend) - 1] == '\n')
+		stringToSend[strlen(stringToSend) - 1] = '\0';
 
-   printf("Writing message to the device [%s].\n", stringToSend);
-   ret = write(fd, stringToSend, strlen(stringToSend));
+	if (strcmp(stringToSend, "") != 0) {
+		printf("Writing message to the device [%s].\n", stringToSend);
+		ret = write(fd, stringToSend, strlen(stringToSend));
+	}
 
-   if (ret < 0) {
-      perror("Failed to write the message to the device.");
-      return errno;
-   }
+	if (ret < 0) {
+		perror("Failed to write the message to the device.");
+		return errno;
+	}
  
-   printf("Press ENTER to read back from the device...\n");
-   getchar();
- 
-   printf("Reading from the device...\n");
-   ret = read(fd, receive, BUFFER_LENGTH);
+	while (ret >= 0 || stringToSend[0] == 'q') {
+		printf("Press ENTER to read from the device, or e to exit...\n");
+		exit = getchar();
+	   
+		if (exit == 'e')
+			break;
+		
+		printf("Reading from the device...\n");
+		ret = read(fd, receive, BUFFER_LENGTH);
 
-   if (ret < 0) {
-      perror("Failed to read the message from the device.");
-      return errno;
-   }
+		if (ret < 0) {
+			perror("Failed to read the message from the device.");
+			return errno;
+		}
 
-   printf("The received message is: [%s]\n", receive);
-   printf("End of the program\n");
+		printf("The received message is: [%s]\n", receive);
+	}
+	
+	printf("End of the program\n");
 
-   return 0;
+	return 0;
 }
