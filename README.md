@@ -1,10 +1,12 @@
-# COP 4600 - PA2
+COP 4600 - PA2
+======
+
 This module will allow the user to input multiple characters at a time, but will allow for only 1 character to be read out at a time. 
 
-#
+###
 
-## Module:
-----------
+Module:
+------
 
 Build Module: `make`
 
@@ -14,10 +16,10 @@ Remove Module: `sudo rmmod pa2`
 
 View Kernal Messages: `dmesg`
 
-#
+###
 
-## Testing:
-----------
+Testing:
+------
 
 Compile: `gcc -o test test.c`
 
