@@ -22,29 +22,30 @@ int main() {
 		return errno;
 	}
 
-	printf("Type in a string to send to the kernel module (press ENTER to skip):\n");
-	fgets(stringToSend, BUFFER_LENGTH, stdin);
-	
-	if (stringToSend[strlen(stringToSend) - 1] == '\n')
-		stringToSend[strlen(stringToSend) - 1] = '\0';
-
-	if (strcmp(stringToSend, "") != 0) {
-		printf("Writing message to the device [%s].\n", stringToSend);
-		ret = write(fd, stringToSend, strlen(stringToSend));
-	}
+	do {
+		printf("\nType in a string to send to the kernel module (press ENTER to skip):\n");
+		fgets(stringToSend, BUFFER_LENGTH, stdin);
+		
+		if (stringToSend[strlen(stringToSend) - 1] == '\n')
+			stringToSend[strlen(stringToSend) - 1] = '\0';
+			
+		if (strcmp(stringToSend, "") != 0) {
+			printf("Writing message to the device [%s].\n", stringToSend);
+			ret = write(fd, stringToSend, strlen(stringToSend));
+		} else {
+			break;
+		}
+	} while (strcmp(stringToSend, "") != 0);
 
 	if (ret < 0) {
 		perror("Failed to write the message to the device.");
 		return errno;
 	}
  
-	while (ret >= 0 || stringToSend[0] == 'q') {
-		printf("Press ENTER to read from the device, or e to exit...\n");
-		exit = getchar();
-	   
-		if (exit == 'e')
-			break;
-		
+	printf("Press ENTER to read from the device, or e to exit...\n");
+	exit = getchar();
+	  
+	if (exit != 'e') {
 		printf("Reading from the device...\n");
 		ret = read(fd, receive, BUFFER_LENGTH);
 
@@ -56,7 +57,7 @@ int main() {
 		printf("The received message is: [%s]\n", receive);
 	}
 	
-	printf("End of the program\n");
+	printf("\nEnd of the program\n");
 
 	return 0;
 }

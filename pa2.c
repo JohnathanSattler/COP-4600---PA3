@@ -48,6 +48,8 @@ static int __init pa2_init(void) {
 
 	msg = (char *) vmalloc(sizeof(char) * BUF_LEN);
 
+	printk(KERN_INFO "PA2 Module: Initialized.\n");
+
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
 	if (Major < 0) {
 		printk(KERN_ALERT "PA2 Module: Registering char device failed with %d.\n", Major);
@@ -71,8 +73,6 @@ static int __init pa2_init(void) {
       		return PTR_ERR(pa2charDevice);
    	}
    	printk(KERN_INFO "PA2 Module: Class created correctly.\n");
-
-	printk(KERN_INFO "PA2 Module: Initialized.\n");
 
 	return 0;
 }
@@ -106,13 +106,11 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 	int errorCount = 0;
 	
 	if (msgSize > 0) {
-		errorCount = copy_to_user(buffer, msg, 1);
+		errorCount = copy_to_user(buffer, msg, msgSize);
 		
 		if (errorCount == 0) {
-				printk(KERN_INFO "PA2 Module: Sent %c[%d] to the user.\n", msg[0], msg[0]);
-				msg++;
-				msgSize--;
-				return 1;
+				printk(KERN_INFO "PA2 Module: Sent %d characters to the user [%s].\n", msgSize, msg);
+				return (msgSize = 0);
 		}
 		
 		printk(KERN_INFO "PA2 Module: Failed to send %d characters to the user.\n", errorCount);
@@ -133,7 +131,7 @@ static ssize_t device_write(struct file *filp, const char *buffer, size_t len, l
 	strcat(msg, "\0");
    	msgSize = strlen(msg);
 
-   	printk(KERN_INFO "PA2 Module: Received %zu characters from the user [%s].\n", len, msg);
+   	printk(KERN_INFO "PA2 Module: Received %zu characters from the user [%s].\n", len, buffer);
 
    	return len;
 }
