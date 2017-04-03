@@ -1,7 +1,7 @@
 COP 4600 - PA2
 ======
 
-This module will allow the user to input multiple characters at a time, but will allow for only 1 character to be read out at a time. 
+This module will allow the user to input multiple characters into a buffer at a time, and will allow the user to read the whole buffer when needed. 
 
 ###
 
