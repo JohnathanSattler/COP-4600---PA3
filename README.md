@@ -10,9 +10,13 @@ Module:
 
 Build Module: `make`
 
-Install Module: `sudo insmod pa2.ko`
+Install Input Module: `sudo insmod pa3in.ko`
 
-Remove Module: `sudo rmmod pa2`
+Install Output Module: `sudo insmod pa3out.ko`
+
+Remove Output Module: `sudo rmmod pa3out`
+
+Remove Input Module: `sudo rmmod pa3in`
 
 View Kernal Messages: `dmesg`
 
