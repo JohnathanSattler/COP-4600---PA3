@@ -15,7 +15,7 @@ int main() {
 
 	printf("Starting device test code example...\n");
 
-	fd = open("/dev/pa2char", O_RDWR);
+	fd = open("/dev/pa3char", O_RDWR);
 
 	if (fd < 0) {
 		perror("Failed to open the device...");

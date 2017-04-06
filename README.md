@@ -1,4 +1,4 @@
-COP 4600 - PA2
+COP 4600 - PA3
 ======
 
 This module will allow the user to input multiple characters into a buffer at a time, and will allow the user to read the whole buffer when needed. 
