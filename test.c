@@ -10,12 +10,13 @@ static char receive[BUFFER_LENGTH];
  
 int main() {
 
-	int ret, fd, exit;
+	int ret, fd, fe, exit;
 	char stringToSend[BUFFER_LENGTH];
 
 	printf("Starting device test code example...\n");
 
-	fd = open("/dev/pa3char", O_RDWR);
+	fd = open("/dev/pa3inchar", O_RDWR);
+	fe = open("/dev/pa3outchar", O_RDWR);
 
 	if (fd < 0) {
 		perror("Failed to open the device...");
@@ -47,7 +48,7 @@ int main() {
 	  
 	if (exit != 'e') {
 		printf("Reading from the device...\n");
-		ret = read(fd, receive, BUFFER_LENGTH);
+		ret = read(fe, receive, BUFFER_LENGTH);
 
 		if (ret < 0) {
 			perror("Failed to read the message from the device.");
