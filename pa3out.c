@@ -40,12 +40,10 @@ static int numberOpens = 0;
 #define BUF_LEN 1024
 extern char * msg;
 
-static struct class*  pa3charClass  = NULL;
-static struct device* pa3charDevice = NULL;
+static struct class *  pa3charClass  = NULL;
+static struct device * pa3charDevice = NULL;
 
 static int __init pa3_init(void) {
-
-	msg = (char *) vmalloc(sizeof(char) * BUF_LEN);
 
 	printk(KERN_INFO "PA3 Output Module: Initialized.\n");
 

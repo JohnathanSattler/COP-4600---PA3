@@ -43,8 +43,8 @@ static char * msg;
 
 EXPORT_SYMBOL(msg);
 
-static struct class*  pa3charClass  = NULL;
-static struct device* pa3charDevice = NULL;
+static struct class *  pa3charClass  = NULL;
+static struct device * pa3charDevice = NULL;
 
 static int __init pa3_init(void) {
 
