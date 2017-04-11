@@ -26,6 +26,8 @@ static int device_open(struct inode *, struct file *);
 static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 
+static DEFINE_MUTEX(pa3out_mutex);
+
 static struct file_operations fops = {
 	.read    = device_read,
 	.open    = device_open,
@@ -71,10 +73,14 @@ static int __init pa3_init(void) {
    	}
    	printk(KERN_INFO "PA3 Output Module: Class created correctly.\n");
 
+	mutex_init(&pa3out_mutex);
+
 	return 0;
 }
 
 static void __exit pa3_exit(void) {
+
+	mutex_destroy(&pa3out_mutex);
 
 	device_destroy(pa3charClass, MKDEV(Major, 0));
    	class_unregister(pa3charClass);
@@ -86,12 +92,19 @@ static void __exit pa3_exit(void) {
 
 static int device_open(struct inode *inode, struct file *file) {
 
+	if (!mutex_trylock(&pa3out_mutex)) {
+		printk(KERN_ALERT "PA3 Output Module: Device in use by another process.\n");
+		return -EBUSY;
+	}
+
 	printk(KERN_INFO "PA3 Output Module: Character device opened %d times.\n", ++numberOpens);
 
 	return 0;
 }
 
 static int device_release(struct inode *inode, struct file *file) {
+
+	mutex_unlock(&pa3out_mutex);
 
 	printk(KERN_INFO "PA3 Output Module: Character device closed.\n");
 

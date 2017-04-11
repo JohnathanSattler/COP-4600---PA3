@@ -12,6 +12,7 @@
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/vmalloc.h>
+#include <linux/mutex.h>
 #include <asm/uaccess.h>
 
 #define DEVICE_NAME "pa3inchar"
@@ -25,6 +26,8 @@ MODULE_VERSION("1.0");
 static int device_open(struct inode *, struct file *);
 static int device_release(struct inode *, struct file *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
+
+static DEFINE_MUTEX(pa3in_mutex);
 
 static struct file_operations fops = {
 	.write   = device_write,
@@ -74,10 +77,14 @@ static int __init pa3_init(void) {
    	}
    	printk(KERN_INFO "PA3 Input Module: Class created correctly.\n");
 
+	mutex_init(&pa3in_mutex);
+
 	return 0;
 }
 
 static void __exit pa3_exit(void) {
+
+	mutex_destroy(&pa3in_mutex);
 
 	device_destroy(pa3charClass, MKDEV(Major, 0));
    	class_unregister(pa3charClass);
@@ -89,6 +96,11 @@ static void __exit pa3_exit(void) {
 
 static int device_open(struct inode *inode, struct file *file) {
 
+	if (!mutex_trylock(&pa3in_mutex)) {
+		printk(KERN_ALERT "PA3 Input Module: Device in use by another process.\n");
+		return -EBUSY;
+	}
+
 	printk(KERN_INFO "PA3 Input Module: Character device opened %d times.\n", ++numberOpens);
 
 	return 0;
@@ -96,6 +108,8 @@ static int device_open(struct inode *inode, struct file *file) {
 
 static int device_release(struct inode *inode, struct file *file) {
 
+	mutex_unlock(&pa3in_mutex);
+	
 	printk(KERN_INFO "PA3 Input Module: Character device closed.\n");
 
 	return 0;
@@ -103,10 +117,7 @@ static int device_release(struct inode *inode, struct file *file) {
 
 static ssize_t device_write(struct file *filp, const char *buffer, size_t len, loff_t * off) {
 
-	// if (strlen(msg) == 0)
-	// 	sprintf(msg, "%s", buffer);
-	// else
-		strcat(msg, buffer);
+	strcat(msg, buffer);
 		
 	strcat(msg, "\0");
 
