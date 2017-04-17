@@ -22,6 +22,11 @@ int main() {
 		perror("Failed to open the device...");
 		return errno;
 	}
+	
+	if (fe < 0) {
+		perror("Failed to open the device...");
+		return errno;
+	}
 
 	do {
 		printf("\nType in a string to send to the kernel module (press ENTER to skip):\n");
