@@ -113,17 +113,27 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 
 	int errorCount = 0;
 
+	//if (!mutex_trylock(&pa3out_mutex)) {
+	//	printk(KERN_ALERT "PA3 Output Module: Device in use by another process.\n");
+	//	return -EBUSY;
+	//}
+
 	errorCount = copy_to_user(buffer, msg, strlen(msg));
 	
 	if (errorCount == 0) {
 			printk(KERN_INFO "PA3 Output Module: Sent %d characters to the user [%s].\n", strlen(msg), msg);
+			
+			//mutex_unlock(&pa3out_mutex);
+			
 			return (msg[0] = '\0');
 	}
 		
 	printk(KERN_INFO "PA3 Output Module: Failed to send %d characters to the user.\n", errorCount);
+	
+	//mutex_unlock(&pa3out_mutex);
+	
 	return -EFAULT;
 }
 
 module_init(pa3_init);
 module_exit(pa3_exit);
-

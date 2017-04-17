@@ -117,11 +117,18 @@ static int device_release(struct inode *inode, struct file *file) {
 
 static ssize_t device_write(struct file *filp, const char *buffer, size_t len, loff_t * off) {
 
+	//if (!mutex_trylock(&pa3in_mutex)) {
+	//	printk(KERN_ALERT "PA3 Input Module: Device in use by another process.\n");
+	//	return -EBUSY;
+	//}
+
 	strcat(msg, buffer);
 		
 	strcat(msg, "\0");
 
    	printk(KERN_INFO "PA3 Input Module: Received %zu characters from the user [%s].\n", len, buffer);
+
+	//mutex_unlock(&pa3in_mutex);
 
    	return len;
 }
