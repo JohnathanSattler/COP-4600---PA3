@@ -25,11 +25,13 @@ MODULE_VERSION("1.0");
 static int device_open(struct inode *, struct file *);
 static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
+static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 
 static DEFINE_MUTEX(pa3out_mutex);
 
 static struct file_operations fops = {
 	.read    = device_read,
+	.write   = device_write,
 	.open    = device_open,
 	.release = device_release
 };
@@ -131,6 +133,13 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 	printk(KERN_INFO "PA3 Output Module: Failed to send %d characters to the user.\n", errorCount);
 	
 	//mutex_unlock(&pa3out_mutex);
+	
+	return -EFAULT;
+}
+
+static ssize_t device_write(struct file *filp, const char *buffer, size_t len, loff_t * off) {
+	
+	printk(KERN_INFO "PA3 Output Module: Writing not supported.");
 	
 	return -EFAULT;
 }
