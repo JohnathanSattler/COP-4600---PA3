@@ -28,7 +28,8 @@ static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 
-static DEFINE_MUTEX(pa3in_mutex);
+static DEFINE_MUTEX(pa3_mutex);
+EXPORT_SYMBOL(pa3_mutex);
 
 static struct file_operations fops = {
 	.read    = device_read,
@@ -79,14 +80,14 @@ static int __init pa3_init(void) {
    	}
    	printk(KERN_INFO "PA3 Input Module: Class created correctly.\n");
 
-	mutex_init(&pa3in_mutex);
+	mutex_init(&pa3_mutex);
 
 	return 0;
 }
 
 static void __exit pa3_exit(void) {
 
-	mutex_destroy(&pa3in_mutex);
+	mutex_destroy(&pa3_mutex);
 
 	device_destroy(pa3charClass, MKDEV(Major, 0));
    	class_unregister(pa3charClass);
@@ -98,19 +99,12 @@ static void __exit pa3_exit(void) {
 
 static int device_open(struct inode *inode, struct file *file) {
 
-	if (!mutex_trylock(&pa3in_mutex)) {
-		printk(KERN_ALERT "PA3 Input Module: Device in use by another process.\n");
-		return -EBUSY;
-	}
-
 	printk(KERN_INFO "PA3 Input Module: Character device opened %d times.\n", ++numberOpens);
 
 	return 0;
 }
 
 static int device_release(struct inode *inode, struct file *file) {
-
-	mutex_unlock(&pa3in_mutex);
 	
 	printk(KERN_INFO "PA3 Input Module: Character device closed.\n");
 
@@ -126,10 +120,10 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 
 static ssize_t device_write(struct file *filp, const char *buffer, size_t len, loff_t * off) {
 
-	//if (!mutex_trylock(&pa3in_mutex)) {
-	//	printk(KERN_ALERT "PA3 Input Module: Device in use by another process.\n");
-	//	return -EBUSY;
-	//}
+	if (!mutex_trylock(&pa3_mutex)) {
+		printk(KERN_ALERT "PA3 Input Module: Device in use by another process.\n");
+		return -EBUSY;
+	}
 
 	strcat(msg, buffer);
 		
@@ -137,7 +131,7 @@ static ssize_t device_write(struct file *filp, const char *buffer, size_t len, l
 
    	printk(KERN_INFO "PA3 Input Module: Received %zu characters from the user [%s].\n", len, buffer);
 
-	//mutex_unlock(&pa3in_mutex);
+	mutex_unlock(&pa3_mutex);
 
    	return len;
 }

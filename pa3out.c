@@ -27,8 +27,6 @@ static int device_release(struct inode *, struct file *);
 static ssize_t device_read(struct file *, char *, size_t, loff_t *);
 static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 
-static DEFINE_MUTEX(pa3out_mutex);
-
 static struct file_operations fops = {
 	.read    = device_read,
 	.write   = device_write,
@@ -41,6 +39,7 @@ static int numberOpens = 0;
 
 #define BUF_LEN 1024
 extern char * msg;
+extern struct mutex pa3_mutex;
 
 static struct class *  pa3charClass  = NULL;
 static struct device * pa3charDevice = NULL;
@@ -73,14 +72,10 @@ static int __init pa3_init(void) {
    	}
    	printk(KERN_INFO "PA3 Output Module: Class created correctly.\n");
 
-	mutex_init(&pa3out_mutex);
-
 	return 0;
 }
 
 static void __exit pa3_exit(void) {
-
-	mutex_destroy(&pa3out_mutex);
 
 	device_destroy(pa3charClass, MKDEV(Major, 0));
    	class_unregister(pa3charClass);
@@ -92,19 +87,12 @@ static void __exit pa3_exit(void) {
 
 static int device_open(struct inode *inode, struct file *file) {
 
-	if (!mutex_trylock(&pa3out_mutex)) {
-		printk(KERN_ALERT "PA3 Output Module: Device in use by another process.\n");
-		return -EBUSY;
-	}
-
 	printk(KERN_INFO "PA3 Output Module: Character device opened %d times.\n", ++numberOpens);
 
 	return 0;
 }
 
 static int device_release(struct inode *inode, struct file *file) {
-
-	mutex_unlock(&pa3out_mutex);
 
 	printk(KERN_INFO "PA3 Output Module: Character device closed.\n");
 
@@ -115,24 +103,24 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 
 	int errorCount = 0;
 
-	//if (!mutex_trylock(&pa3out_mutex)) {
-	//	printk(KERN_ALERT "PA3 Output Module: Device in use by another process.\n");
-	//	return -EBUSY;
-	//}
+	if (!mutex_trylock(&pa3_mutex)) {
+		printk(KERN_ALERT "PA3 Output Module: Device in use by another process.\n");
+		return -EBUSY;
+	}
 
 	errorCount = copy_to_user(buffer, msg, strlen(msg));
 	
 	if (errorCount == 0) {
 			printk(KERN_INFO "PA3 Output Module: Sent %d characters to the user [%s].\n", strlen(msg), msg);
 			
-			//mutex_unlock(&pa3out_mutex);
+			mutex_unlock(&pa3_mutex);
 			
 			return (msg[0] = '\0');
 	}
 		
 	printk(KERN_INFO "PA3 Output Module: Failed to send %d characters to the user.\n", errorCount);
 	
-	//mutex_unlock(&pa3out_mutex);
+	mutex_unlock(&pa3_mutex);
 	
 	return -EFAULT;
 }
